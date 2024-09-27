@@ -47,6 +47,16 @@ app.post("/api/users", async (req, res) => {
   }
 });
 
+app.get("/api/users/", async (req, res) => {
+  try {
+    const findUser = await User.find({}, { username: 1, _id: 1 });
+    const data = [...findUser];
+    res.status(200).json(data);
+  } catch (error) {
+    console.log(error);
+  }
+});
+
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log("Your app is listening on port " + listener.address().port);
 });
