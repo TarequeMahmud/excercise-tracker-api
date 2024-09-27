@@ -57,6 +57,51 @@ app.get("/api/users/", async (req, res) => {
   }
 });
 
+app.post("/api/users/:_id/exercises", async (req, res) => {
+  console.log(req.body);
+
+  console.log(req.params._id);
+  const _id = req.params._id;
+
+  const { description, duration, date } = req.body;
+
+  if (!description || !duration) {
+    console.log("error");
+    return res.json({ error: "Please Enter required fields." });
+  }
+  const exerciseDate = date ? new Date(date) : new Date();
+  const newLog = {
+    description,
+    duration: Number(duration),
+    date: exerciseDate,
+  };
+  try {
+    const updateLog = await User.findByIdAndUpdate(
+      _id,
+      {
+        $push: { exerciseLogs: newLog },
+      },
+      { new: true, runValidators: true }
+    );
+    if (!updateLog) {
+      console.log(error);
+      return res.json({ error: "Error Updating log" });
+    }
+
+    const lastLog = updateLog.exerciseLogs[updateLog.exerciseLogs.length - 1];
+    return res.json({
+      _id: updateLog._id,
+      username: updateLog.username,
+      date: new Date(lastLog.date).toDateString(),
+      duration: lastLog.duration,
+      description: lastLog.description,
+    });
+  } catch (error) {
+    console.log(error);
+    res.json({ error: error });
+  }
+});
+
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log("Your app is listening on port " + listener.address().port);
 });
