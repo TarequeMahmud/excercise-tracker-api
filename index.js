@@ -31,6 +31,22 @@ app.get("/", (req, res) => {
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
+app.post("/api/users", async (req, res) => {
+  const user = req.body.username;
+  if (user) {
+    try {
+      const newUser = User({ username: user });
+      const saveUser = await newUser.save();
+      res.status(201).json({ username: saveUser.username, _id: saveUser._id });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: "Server Error" });
+    }
+  } else {
+    res.status(400).json({ error: "Please Enter Valid User Name" });
+  }
+});
+
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log("Your app is listening on port " + listener.address().port);
 });
