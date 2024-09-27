@@ -102,6 +102,49 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
   }
 });
 
+app.get("/api/users/:_id/logs", async (req, res) => {
+  const _id = req.params._id;
+  const { from, to, limit } = req.query;
+  console.log(from, to, limit);
+
+  try {
+    const user = await User.findById(_id);
+    if (!user) return res.json({ error: "User not found." });
+    let exerciseLogs = user.exerciseLogs;
+
+    if (from) {
+      exerciseLogs = exerciseLogs.filter(
+        (log) => new Date(log.date).getTime() >= new Date(from).getTime()
+      );
+    }
+    if (to) {
+      exerciseLogs = exerciseLogs.filter(
+        (log) => new Date(log.date).getTime() <= new Date(to).getTime()
+      );
+    }
+    if (limit) {
+      exerciseLogs = exerciseLogs.slice(0, Number(limit));
+    }
+
+    res.json({
+      username: user.username,
+      count: exerciseLogs.length,
+      _id: user._id,
+      log: exerciseLogs.map((log) => ({
+        description: log.description,
+        duration: log.duration,
+        date: new Date(log.date).toDateString(),
+      })),
+    });
+  } catch (error) {
+    console.error(error);
+    if (error.name === "CastError") {
+      return res.status(400).json({ error: "Invalid ID format" });
+    }
+    res.json({ error: "Server Error", name: error.name });
+  }
+});
+
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log("Your app is listening on port " + listener.address().port);
 });
